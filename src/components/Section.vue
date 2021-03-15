@@ -1,20 +1,17 @@
 <template>
   <section class="section" ref="section" :style="sectionStyle">
-    <!-- loop through elements -->
-    <Moveable
-      class="moveable"
-      v-bind="moveable"
-      @drag-start="handleDragStart"
-      @drag="handleDrag"
-      @drag-end="handleDragEnd"
-      @resize-start="handleResizeStart"
-      @resize="handleResize"
-      @resize-end="handleResizeEnd"
-    >
-      component with relatively sized text
-    </Moveable>
+    <!-- TODO: loop through elements -->
+    <Element
+      v-for="({ width, top, left, id, content }, index) in elements"
+      :width="width"
+      :left="left"
+      :top="top"
+      :key="id"
+      :content="content"
+      @element-mouseleave="() => handleElementMouseleave(index)"
+      @element-mouseenter="(payload) => handleElementMouseenter(payload, index)"
+    />
     <Tiles
-      v-if="isResizingLeft || isResizingRight"
       :row-count="rowCount"
       :column-count="columnCount"
       :show-left-guide="showLeftGuide"
@@ -26,8 +23,10 @@
 </template>
 
 <script>
+import Moveable from "moveable";
+
 import Tiles from "./Tiles.vue";
-import Moveable from "vue-moveable";
+import Element from "./Element.vue";
 
 const INITIAL_SECTION_WIDTH = 1224;
 const INITIAL_SECTION_HEIGHT = 80;
@@ -37,25 +36,44 @@ const INITIAL_ROW_HEIGHT = 80;
 const INITIAL_ROW_GAP = 24;
 const INITIAL_ROW_COUNT = 3;
 
+const INITAL_ELEMENTS = [
+  {
+    id: "id0",
+    left: 0,
+    top: 0,
+    width: 184,
+    content: "kontent id0 kontent id0 kontent id0 kontent id0 kontent id0",
+  },
+  {
+    id: "id1",
+    left: 108,
+    top: 0,
+    width: 184,
+    content: "kontent id1 kontent id1 kontent id1 kontent id1 kontent id1",
+  },
+  {
+    id: "id2",
+    left: 216,
+    top: 0,
+    width: 184,
+    content: "kontent id2 kontent id2 kontent id2 kontent id2 kontent id2",
+  },
+];
+
 export default {
-  name: "app",
+  name: "Section",
   components: {
-    Moveable,
+    Element,
     Tiles,
   },
   data() {
     return {
-      moveable: {
-        passDragArea: true,
-        draggable: true,
-        throttleDrag: 1,
-        resizable: true,
-        throttleResize: 1,
-        edges: true,
-        renderDirections: ["e", "w"],
-        container: this.$refs.section,
-      },
+      elements: INITAL_ELEMENTS,
+      activeElementIndex: -1,
       isSnapEnabled: true,
+      moveable: null,
+      isMoveableActive: false,
+
       width: INITIAL_SECTION_WIDTH,
       height: INITIAL_SECTION_HEIGHT,
 
@@ -66,60 +84,109 @@ export default {
       rowCount: INITIAL_ROW_COUNT,
 
       // temporary point to hold left value
-      componentLeftInitial: 0,
-      componentLeft: 0,
-      componentTop: 0,
-      componentWidth: 184,
 
       isResizingLeft: false,
       isResizingRight: false,
     };
   },
   methods: {
-    handleDragStart() {
+    handleDragStart(e, index) {
+      this.activeElementIndex = index;
       this.isResizingLeft = true;
       this.isResizingRight = true;
     },
-    handleDrag(e) {
-      this.componentTop = e.top;
-      this.componentLeft = e.left;
+    handleDrag(e, index) {
+      this.elements[index].top = e.top;
+      this.elements[index].left = e.left;
       e.target.style.top = `${e.top}px`;
       e.target.style.left = `${e.left}px`;
     },
-    handleDragEnd(e) {
+    handleDragEnd(e, index) {
       if (this.isSnapEnabled) {
-        this.componentLeft = this.activeLeftGuide;
-        this.componentWidth = this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.componentLeft}px`;
-        e.target.style.width = `${this.componentWidth}px`;
+        this.elements[index].left = this.activeLeftGuide;
+        this.elements[index].width =
+          this.activeRightGuide - this.activeLeftGuide;
+        e.target.style.left = `${this.elements[index].left}px`;
+        e.target.style.width = `${this.elements[index].width}px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
+      this.activeElementIndex = -1;
     },
-    handleResizeStart(e) {
-      this.componentLeftInitial = this.componentLeft;
+    handleResizeStart(e, index) {
+      this.activeElementIndex = index;
+
+      // make a clone of previous position to use for left positioning
+      this.elements[index].initialLeft = this.elements[index].left;
       this.isResizingLeft = e.direction[0] === -1;
       this.isResizingRight = e.direction[0] === 1;
     },
-    handleResize(e) {
-      this.componentWidth = e.target.clientWidth;
+    handleResize(e, index) {
+      this.elements[index].width = e.target.clientWidth;
       e.target.style.width = `${e.width}px`;
 
       // only on left handle
       if (this.isResizingLeft) {
-        this.componentLeft = this.componentLeftInitial - e.dist[0];
-        e.target.style.left = `${this.componentLeft}px`;
+        this.elements[index].left =
+          this.elements[index].initialLeft - e.dist[0];
+        e.target.style.left = `${this.elements[index].left}px`;
       }
     },
-    handleResizeEnd(e) {
+    handleResizeEnd(e, index) {
       if (this.isSnapEnabled) {
-        this.componentLeft = this.activeLeftGuide;
-        this.componentWidth = this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.componentLeft}px`;
-        e.target.style.width = `${this.componentWidth}px`;
+        this.elements[index].left = this.activeLeftGuide;
+        this.elements[index].width =
+          this.activeRightGuide - this.activeLeftGuide;
+        e.target.style.left = `${this.elements[index].left}px`;
+        e.target.style.width = `${this.elements[index].width}px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
+      this.activeElementIndex = -1;
+    },
+    initializeMoveable(elementRef, index) {
+      this.moveable = new Moveable(document.body, {
+        target: elementRef,
+        // If the container is null, the position is fixed. (default: parentElement(document.body))
+        container: this.sectionRef,
+        passDragArea: true,
+        draggable: true,
+        // throttleDrag: 1,
+        resizable: true,
+        // throttleResize: 1,
+        edges: true,
+        renderDirections: ["e", "w"],
+      });
+
+      this.moveable
+        .on("resizeStart", (e) => this.handleResizeStart(e, index))
+        .on("resize", (e) => this.handleResize(e, index))
+        .on("resizeEnd", (e) => this.handleResizeEnd(e, index))
+        .on("dragStart", (e) => this.handleDragStart(e, index))
+        .on("drag", (e) => this.handleDrag(e, index))
+        .on("dragEnd", (e) => this.handleDragEnd(e, index));
+    },
+    handleElementMouseleave(index) {
+      //   if (this.activeElementIndex === -1) return;
+      //   if (this.moveable) {
+      //     this.moveable.destroy();
+      //     this.moveable = null;
+      //   }
+      //   if (this.isSnapEnabled) {
+      //     this.elements[index].left = this.activeLeftGuide;
+      //     this.elements[index].width =
+      //       this.activeRightGuide - this.activeLeftGuide;
+      //   }
+      //   this.isResizingLeft = false;
+      //   this.isResizingRight = false;
+      //   this.activeElementIndex = -1;
+    },
+    handleElementMouseenter(elementRef, index) {
+      if (this.moveable) {
+        this.moveable.destroy();
+        this.moveable = null;
+      }
+      this.initializeMoveable(elementRef, index);
     },
   },
   computed: {
@@ -153,15 +220,17 @@ export default {
     rightTileGuides: ({ leftTileGuides, columnWidth }) => {
       return leftTileGuides.map((edge) => edge + columnWidth);
     },
-    activeLeftGuide: ({ leftTileGuides, componentLeft }) => {
+    activeLeftGuide: ({ leftTileGuides, elements, activeElementIndex }) => {
+      if (activeElementIndex === -1) return;
       return leftTileGuides.reduce((prev, curr) => {
-        return Math.abs(curr - componentLeft) < Math.abs(prev - componentLeft)
-          ? curr
-          : prev;
+        const { left } = elements[activeElementIndex];
+        return Math.abs(curr - left) < Math.abs(prev - left) ? curr : prev;
       });
     },
-    activeRightGuide: ({ rightTileGuides, componentLeft, componentWidth }) => {
-      const right = componentLeft + componentWidth;
+    activeRightGuide: ({ rightTileGuides, elements, activeElementIndex }) => {
+      if (activeElementIndex === -1) return;
+      const { left, width } = elements[activeElementIndex];
+      const right = left + width;
       return rightTileGuides.reduce((prev, curr) => {
         return Math.abs(curr - right) < Math.abs(prev - right) ? curr : prev;
       });

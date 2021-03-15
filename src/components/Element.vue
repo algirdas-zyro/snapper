@@ -1,133 +1,44 @@
 <template>
-    <Moveable
-      class="moveable"
-      v-bind="moveable"
-      @drag-start="handleDragStart"
-      @drag="handleDrag"
-      @drag-end="handleDragEnd"
-      @resize-start="handleResizeStart"
-      @resize="handleResize"
-      @resize-end="handleResizeEnd"
-    >
-      component with relatively sized text
-    </Moveable>
+  <div
+    class="element"
+    ref="element"
+    :style="elementStyle"
+    @click="$emit('element-click', $refs.element)"
+    @mouseenter="$emit('element-mouseenter', $refs.element)"
+    @mouseleave="$emit('element-mouseleave')"
+  >
+    {{ content }}
+  </div>
 </template>
 
 <script>
-import Moveable from "vue-moveable";
-
-const INITIAL_SECTION_WIDTH = 1224;
-const INITIAL_SECTION_HEIGHT = 80;
-const INITIAL_COLUMN_GAP = 24;
-const INITIAL_COLUMN_COUNT = 12;
-const INITIAL_ROW_HEIGHT = 80;
-const INITIAL_ROW_GAP = 24;
-const INITIAL_ROW_COUNT = 3;
-
 export default {
-  name: "app",
+  name: "Element",
   components: {
-    Moveable,
+    // Moveable,
+  },
+  props: {
+    id: String,
+    content: String,
+    width: Number,
+    top: Number,
+    left: Number,
   },
   data() {
-    return {
-      moveable: {
-        passDragArea: true,
-        draggable: true,
-        throttleDrag: 1,
-        resizable: true,
-        throttleResize: 1,
-        edges: true,
-        renderDirections: ["e", "w"],
-        container: this.$refs.section,
-      },
-      isSnapEnabled: true,
-      width: INITIAL_SECTION_WIDTH,
-      height: INITIAL_SECTION_HEIGHT,
-
-      columnGap: INITIAL_COLUMN_GAP,
-      columnCount: INITIAL_COLUMN_COUNT,
-      rowHeight: INITIAL_ROW_HEIGHT,
-      rowGap: INITIAL_ROW_GAP,
-      rowCount: INITIAL_ROW_COUNT,
-
-      // temporary point to hold left value
-      componentLeftInitial: 0,
-      componentLeft: 0,
-      componentTop: 0,
-      componentWidth: 184,
-
-      isResizingLeft: false,
-      isResizingRight: false,
-    };
+    return {};
   },
   methods: {
-    handleDragStart() {
-      this.isResizingLeft = true;
-      this.isResizingRight = true;
-    },
-    handleDrag(e) {
-      this.componentTop = e.top;
-      this.componentLeft = e.left;
-      e.target.style.top = `${e.top}px`;
-      e.target.style.left = `${e.left}px`;
-    },
-    handleDragEnd(e) {
-      if (this.isSnapEnabled) {
-        this.componentLeft = this.activeLeftGuide;
-        this.componentWidth = this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.componentLeft}px`;
-        e.target.style.width = `${this.componentWidth}px`;
-      }
-      this.isResizingLeft = false;
-      this.isResizingRight = false;
-    },
-    handleResizeStart(e) {
-      this.componentLeftInitial = this.componentLeft;
-      this.isResizingLeft = e.direction[0] === -1;
-      this.isResizingRight = e.direction[0] === 1;
-    },
-    handleResize(e) {
-      this.componentWidth = e.target.clientWidth;
-      e.target.style.width = `${e.width}px`;
-
-      // only on left handle
-      if (this.isResizingLeft) {
-        this.componentLeft = this.componentLeftInitial - e.dist[0];
-        e.target.style.left = `${this.componentLeft}px`;
-      }
-    },
-    handleResizeEnd(e) {
-      if (this.isSnapEnabled) {
-        this.componentLeft = this.activeLeftGuide;
-        this.componentWidth = this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.componentLeft}px`;
-        e.target.style.width = `${this.componentWidth}px`;
-      }
-      this.isResizingLeft = false;
-      this.isResizingRight = false;
-    },
   },
   computed: {
-    sectionStyle: ({
-      width,
-      height,
-      componentWidth,
-      componentLeft,
-      componentTop,
-      rowGap,
-      columnGap,
-      columnCount,
-    }) => ({
-      "--section-width": `${width}px`,
-      "--section-height": `${height}px`,
-      "--section-rowGap": `${rowGap}px`,
-      "--section-columnGap": `${columnGap}px`,
-      "--section-columnCount": columnCount,
-      "--element-width": `${componentWidth}px`,
-      "--element-left": `${componentLeft}px`,
-      "--element-top": `${componentTop}px`,
-    }),
+    elementStyle: ({ width, left, top }) => {
+      return {
+        //   "--section-width": `${width}px`,
+        //   "--section-height": `${height}px`,
+        width: `${width}px`,
+        left: `${left}px`,
+        top: `${top}px`,
+      };
+    },
     columnWidth: ({ width, columnCount, columnGap }) => {
       return (width + columnGap) / columnCount - columnGap;
     },
@@ -159,15 +70,7 @@ export default {
       return isResizingRight && isSnapEnabled;
     },
   },
-  mounted() {
-    // don't forget tho throttle this!
-    const resizeObserver = new ResizeObserver(([{ contentRect }]) => {
-      this.width = contentRect.width;
-      this.height = contentRect.height;
-    });
-
-    resizeObserver.observe(this.$refs.section);
-  },
+  mounted() {},
 };
 </script>
 
@@ -191,14 +94,14 @@ body {
   margin: auto;
 }
 
-.moveable {
+.element {
   position: absolute;
   width: var(--element-width);
   left: var(--element-left);
   top: var(--element-top);
 }
 
-.moveable .image {
+.element .image {
   width: 100%;
   display: block;
   position: absolute;
