@@ -14,7 +14,6 @@
 </template>
 
 <script>
-
 export default {
   name: "Element",
   components: {
@@ -34,42 +33,10 @@ export default {
   computed: {
     elementStyle: ({ width, left, top }) => {
       return {
-        //   "--section-width": `${width}px`,
-        //   "--section-height": `${height}px`,
         width: `${width}px`,
         left: `${left}px`,
         top: `${top}px`,
       };
-    },
-    columnWidth: ({ width, columnCount, columnGap }) => {
-      return (width + columnGap) / columnCount - columnGap;
-    },
-    leftTileGuides: ({ columnCount, columnGap, columnWidth }) => {
-      return [...Array(columnCount)].map(
-        (column, i) => i * (columnWidth + columnGap)
-      );
-    },
-    rightTileGuides: ({ leftTileGuides, columnWidth }) => {
-      return leftTileGuides.map((edge) => edge + columnWidth);
-    },
-    activeLeftGuide: ({ leftTileGuides, componentLeft }) => {
-      return leftTileGuides.reduce((prev, curr) => {
-        return Math.abs(curr - componentLeft) < Math.abs(prev - componentLeft)
-          ? curr
-          : prev;
-      });
-    },
-    activeRightGuide: ({ rightTileGuides, componentLeft, componentWidth }) => {
-      const right = componentLeft + componentWidth;
-      return rightTileGuides.reduce((prev, curr) => {
-        return Math.abs(curr - right) < Math.abs(prev - right) ? curr : prev;
-      });
-    },
-    showLeftGuide: ({ isResizingLeft, isSnapEnabled }) => {
-      return isResizingLeft && isSnapEnabled;
-    },
-    showRightGuide: ({ isResizingRight, isSnapEnabled }) => {
-      return isResizingRight && isSnapEnabled;
     },
   },
   mounted() {},
