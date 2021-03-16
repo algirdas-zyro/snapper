@@ -7,6 +7,11 @@
     @mouseenter="$emit('element-mouseenter', $refs.element)"
     @mouseleave="$emit('element-mouseleave')"
   >
+    <FontAwesomeIcon
+      class="element__lock"
+      :icon="lockIcon"
+      @click.stop="$emit('element-lock-click', $refs.element)"
+    />
     <p>
       {{ content }}
     </p>
@@ -14,10 +19,13 @@
 </template>
 
 <script>
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+
 export default {
   name: "Element",
   components: {
-    // Moveable,
+    FontAwesomeIcon,
   },
   props: {
     id: String,
@@ -25,12 +33,14 @@ export default {
     width: Number,
     top: Number,
     left: Number,
+    shouldSnap: Boolean,
   },
   data() {
     return {};
   },
   methods: {},
   computed: {
+    lockIcon: ({ shouldSnap }) => (shouldSnap ? faLock : faLockOpen),
     elementStyle: ({ width, left, top }) => {
       return {
         width: `${width}px`,
@@ -44,60 +54,14 @@ export default {
 </script>
 
 <style>
-html,
-body {
-  font-family: "Open Sans", sans-serif;
-  position: relative;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  color: #333;
-  letter-spacing: 1px;
-  background: #f5f5f5;
-  font-weight: 300;
-}
-
-.section {
-  position: relative;
-  max-width: var(--section-width);
-  margin: auto;
-}
-
 .element {
   position: absolute;
-  /* width: var(--element-width);
-  left: var(--element-left);
-  top: var(--element-top); */
 }
 
-.element .image {
-  width: 100%;
-  display: block;
+.element__lock {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-}
-
-.tiles__row {
-  display: grid;
-  grid-gap: var(--section-columnGap);
-  grid-template-columns: repeat(var(--section-columnCount), 1fr);
-  margin-bottom: var(--section-rowGap);
-}
-
-.tiles__column {
-  height: 50px;
-  background-color: rgba(0, 0, 0, 0.1);
-  border: solid 1px rgba(255, 255, 255, 0.35);
-}
-
-.tiles__guide {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background-color: #4af;
-  /* opacity: 0; */
+  bottom: 100%;
+  left: 0;
+  cursor: pointer;
 }
 </style>

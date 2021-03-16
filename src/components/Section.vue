@@ -1,22 +1,27 @@
 <template>
   <section class="section" ref="section" :style="sectionStyle">
     <Element
-      v-for="({ width, top, left, id, content }, index) in elements"
+      v-for="({ width, top, left, id, content, shouldSnap }, index) in elements"
       :width="width"
       :left="left"
       :top="top"
       :key="id"
+      :shouldSnap="shouldSnap"
       :content="content"
+      @element-click="() => handleElementClick(index)"
+      @element-lock-click="() => handleElementLockClick(index)"
       @element-mouseleave="() => handleElementMouseleave(index)"
       @element-mouseenter="(payload) => handleElementMouseenter(payload, index)"
     />
     <Tiles
       :row-count="rowCount"
       :column-count="columnCount"
+      :show-tiles="showLeftGuide || showRightGuide"
       :show-left-guide="showLeftGuide"
       :show-right-guide="showRightGuide"
       :active-left-guide="activeLeftGuide"
       :active-right-guide="activeRightGuide"
+      :active-top-guide="activeTopGuide"
     />
   </section>
 </template>
@@ -28,11 +33,11 @@ import Tiles from "./Tiles.vue";
 import Element from "./Element.vue";
 
 const INITIAL_SECTION_WIDTH = 1224;
-const INITIAL_SECTION_HEIGHT = 80;
+const INITIAL_SECTION_HEIGHT = 248;
 const INITIAL_COLUMN_GAP = 24;
 const INITIAL_COLUMN_COUNT = 12;
-const INITIAL_ROW_HEIGHT = 80;
-const INITIAL_ROW_GAP = 24;
+const INITIAL_ROW_HEIGHT = 50;
+const INITIAL_ROW_GAP = 12;
 const INITIAL_ROW_COUNT = 3;
 
 const INITAL_ELEMENTS = [
@@ -42,6 +47,7 @@ const INITAL_ELEMENTS = [
     top: 0,
     width: 184,
     content: "kontent id0 kontent id0 kontent id0 kontent id0 kontent id0",
+    shouldSnap: true,
   },
   {
     id: "id1",
@@ -49,6 +55,7 @@ const INITAL_ELEMENTS = [
     top: 0,
     width: 184,
     content: "kontent id1 kontent id1 kontent id1 kontent id1 kontent id1",
+    shouldSnap: false,
   },
   {
     id: "id2",
@@ -56,6 +63,7 @@ const INITAL_ELEMENTS = [
     top: 0,
     width: 184,
     content: "kontent id2 kontent id2 kontent id2 kontent id2 kontent id2",
+    shouldSnap: true,
   },
 ];
 
@@ -74,9 +82,7 @@ export default {
     return {
       elements: INITAL_ELEMENTS,
       activeElementIndex: -1,
-      isSnapEnabled: true,
       moveable: null,
-      isMoveableActive: false,
 
       width: INITIAL_SECTION_WIDTH,
       height: INITIAL_SECTION_HEIGHT,
@@ -106,12 +112,15 @@ export default {
       this.elements[index].left = e.left;
     },
     handleDragEnd(e, index) {
-      if (this.isSnapEnabled) {
+      //   if (this.isSnapEnabled) {
+      if (this.elements[index].shouldSnap) {
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
+        this.elements[index].top = this.activeTopGuide;
         e.target.style.left = `${this.elements[index].left}px`;
         e.target.style.width = `${this.elements[index].width}px`;
+        e.target.style.top = `${this.elements[index].top}px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
@@ -137,7 +146,8 @@ export default {
       }
     },
     handleResizeEnd(e, index) {
-      if (this.isSnapEnabled) {
+      //   if (this.isSnapEnabled) {
+      if (this.elements[index].shouldSnap) {
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
@@ -161,6 +171,7 @@ export default {
         resizable: true,
         // throttleResize: 1,
         edge: true,
+        origin: false,
         renderDirections: ["e", "w"],
       });
 
@@ -197,6 +208,12 @@ export default {
       }
       this.initializeMoveable(elementRef, index);
     },
+    handleElementClick(index) {
+      //   this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
+    },
+    handleElementLockClick(index) {
+      this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
+    },
   },
   computed: {
     sectionStyle: ({ width, height, rowGap, columnGap, columnCount }) => ({
@@ -209,34 +226,43 @@ export default {
     columnWidth: ({ width, columnCount, columnGap }) => {
       return (width + columnGap) / columnCount - columnGap;
     },
-    leftGuides: ({ columnCount, columnGap, columnWidth }) => {
+    leftTileGuides: ({ columnCount, columnGap, columnWidth }) => {
       return [...Array(columnCount)].map(
         (column, i) => i * (columnWidth + columnGap)
       );
     },
-    rightGuides: ({ leftGuides, columnWidth }) => {
-      return leftGuides.map((edge) => edge + columnWidth);
+    rightTileGuides: ({ leftTileGuides, columnWidth }) => {
+      return leftTileGuides.map((edge) => edge + columnWidth);
     },
-    activeLeftGuide: ({ leftGuides, elements, activeElementIndex }) => {
+    topTileGuides: ({ rowCount, rowGap, rowHeight }) => {
+      return [...Array(rowCount)].map((column, i) => i * (rowHeight + rowGap));
+    },
+    bottomTileGuides: ({ topTileGuides, rowHeight }) => {
+      return topTileGuides.map((edge) => edge + rowHeight);
+    },
+    activeLeftGuide: ({ leftTileGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
-
       const { left } = elements[activeElementIndex];
-
-      return getClosest(leftGuides, left);
+      return getClosest(leftTileGuides, left);
     },
-    activeRightGuide: ({ rightGuides, elements, activeElementIndex }) => {
+    activeRightGuide: ({ rightTileGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
 
       const { left, width } = elements[activeElementIndex];
       const right = left + width;
 
-      return getClosest(rightGuides, right);
+      return getClosest(rightTileGuides, right);
     },
-    showLeftGuide: ({ isResizingLeft, isSnapEnabled }) => {
-      return isResizingLeft && isSnapEnabled;
+    activeTopGuide: ({ topTileGuides, elements, activeElementIndex }) => {
+      if (activeElementIndex === -1) return;
+      const { top } = elements[activeElementIndex];
+      return getClosest(topTileGuides, top);
     },
-    showRightGuide: ({ isResizingRight, isSnapEnabled }) => {
-      return isResizingRight && isSnapEnabled;
+    showLeftGuide: ({ isResizingLeft, elements, activeElementIndex }) => {
+      return isResizingLeft && elements[activeElementIndex].shouldSnap;
+    },
+    showRightGuide: ({ isResizingRight, elements, activeElementIndex }) => {
+      return isResizingRight && elements[activeElementIndex].shouldSnap;
     },
   },
   mounted() {
