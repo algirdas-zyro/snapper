@@ -40,6 +40,10 @@ export default {
 </script>
 
 <style>
+.tiles {
+    pointer-events: none;
+}
+
 .tiles__row {
   display: grid;
 }

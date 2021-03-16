@@ -7,7 +7,9 @@
     @mouseenter="$emit('element-mouseenter', $refs.element)"
     @mouseleave="$emit('element-mouseleave')"
   >
-    {{ content }}
+    <p>
+      {{ content }}
+    </p>
   </div>
 </template>
 
@@ -27,8 +29,7 @@ export default {
   data() {
     return {};
   },
-  methods: {
-  },
+  methods: {},
   computed: {
     elementStyle: ({ width, left, top }) => {
       return {

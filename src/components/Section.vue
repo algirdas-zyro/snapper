@@ -1,6 +1,5 @@
 <template>
   <section class="section" ref="section" :style="sectionStyle">
-    <!-- TODO: loop through elements -->
     <Element
       v-for="({ width, top, left, id, content }, index) in elements"
       :width="width"
@@ -46,14 +45,14 @@ const INITAL_ELEMENTS = [
   },
   {
     id: "id1",
-    left: 108,
+    left: 104,
     top: 0,
     width: 184,
     content: "kontent id1 kontent id1 kontent id1 kontent id1 kontent id1",
   },
   {
     id: "id2",
-    left: 216,
+    left: 208,
     top: 0,
     width: 184,
     content: "kontent id2 kontent id2 kontent id2 kontent id2 kontent id2",
@@ -146,15 +145,15 @@ export default {
     },
     initializeMoveable(elementRef, index) {
       this.moveable = new Moveable(document.body, {
-        target: elementRef,
         // If the container is null, the position is fixed. (default: parentElement(document.body))
         container: this.sectionRef,
-        passDragArea: true,
+        target: elementRef,
+        // passDragArea: true,
         draggable: true,
         // throttleDrag: 1,
         resizable: true,
         // throttleResize: 1,
-        edges: true,
+        edge: true,
         renderDirections: ["e", "w"],
       });
 
@@ -167,19 +166,19 @@ export default {
         .on("dragEnd", (e) => this.handleDragEnd(e, index));
     },
     handleElementMouseleave(index) {
-      //   if (this.activeElementIndex === -1) return;
-      //   if (this.moveable) {
-      //     this.moveable.destroy();
-      //     this.moveable = null;
-      //   }
-      //   if (this.isSnapEnabled) {
-      //     this.elements[index].left = this.activeLeftGuide;
-      //     this.elements[index].width =
-      //       this.activeRightGuide - this.activeLeftGuide;
-      //   }
-      //   this.isResizingLeft = false;
-      //   this.isResizingRight = false;
-      //   this.activeElementIndex = -1;
+        if (this.activeElementIndex === -1) return;
+        if (this.moveable) {
+          this.moveable.destroy();
+          this.moveable = null;
+        }
+        if (this.isSnapEnabled) {
+          this.elements[index].left = this.activeLeftGuide;
+          this.elements[index].width =
+            this.activeRightGuide - this.activeLeftGuide;
+        }
+        this.isResizingLeft = false;
+        this.isResizingRight = false;
+        this.activeElementIndex = -1;
     },
     handleElementMouseenter(elementRef, index) {
       if (this.moveable) {
@@ -199,6 +198,8 @@ export default {
       rowGap,
       columnGap,
       columnCount,
+    //   activeElementIndex,
+    //   moveable,
     }) => ({
       "--section-width": `${width}px`,
       "--section-height": `${height}px`,
@@ -208,30 +209,31 @@ export default {
       "--element-width": `${componentWidth}px`,
       "--element-left": `${componentLeft}px`,
       "--element-top": `${componentTop}px`,
+    //   pointerEvents: moveable && 'none',
     }),
     columnWidth: ({ width, columnCount, columnGap }) => {
       return (width + columnGap) / columnCount - columnGap;
     },
-    leftTileGuides: ({ columnCount, columnGap, columnWidth }) => {
+    leftGuides: ({ columnCount, columnGap, columnWidth }) => {
       return [...Array(columnCount)].map(
         (column, i) => i * (columnWidth + columnGap)
       );
     },
-    rightTileGuides: ({ leftTileGuides, columnWidth }) => {
-      return leftTileGuides.map((edge) => edge + columnWidth);
+    rightGuides: ({ leftGuides, columnWidth }) => {
+      return leftGuides.map((edge) => edge + columnWidth);
     },
-    activeLeftGuide: ({ leftTileGuides, elements, activeElementIndex }) => {
+    activeLeftGuide: ({ leftGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
-      return leftTileGuides.reduce((prev, curr) => {
+      return leftGuides.reduce((prev, curr) => {
         const { left } = elements[activeElementIndex];
         return Math.abs(curr - left) < Math.abs(prev - left) ? curr : prev;
       });
     },
-    activeRightGuide: ({ rightTileGuides, elements, activeElementIndex }) => {
+    activeRightGuide: ({ rightGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
       const { left, width } = elements[activeElementIndex];
       const right = left + width;
-      return rightTileGuides.reduce((prev, curr) => {
+      return rightGuides.reduce((prev, curr) => {
         return Math.abs(curr - right) < Math.abs(prev - right) ? curr : prev;
       });
     },
@@ -266,6 +268,11 @@ body {
   letter-spacing: 1px;
   background: #f5f5f5;
   font-weight: 300;
+  /* pointer-events: none; */
+}
+
+.moveable-control-box {
+    pointer-events: all;
 }
 
 .section {
