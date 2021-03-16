@@ -14,6 +14,7 @@
 </template>
 
 <script>
+
 export default {
   name: "Element",
   components: {
@@ -97,9 +98,9 @@ body {
 
 .element {
   position: absolute;
-  width: var(--element-width);
+  /* width: var(--element-width);
   left: var(--element-left);
-  top: var(--element-top);
+  top: var(--element-top); */
 }
 
 .element .image {

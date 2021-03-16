@@ -59,6 +59,11 @@ const INITAL_ELEMENTS = [
   },
 ];
 
+const getClosest = (array, val) =>
+  array.reduce((prev, curr) =>
+    Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev
+  );
+
 export default {
   name: "Section",
   components: {
@@ -137,7 +142,9 @@ export default {
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
         e.target.style.left = `${this.activeLeftGuide}px`;
-        e.target.style.width = `${this.activeRightGuide - this.activeLeftGuideh}px`;
+        e.target.style.width = `${
+          this.activeRightGuide - this.activeLeftGuideh
+        }px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
@@ -166,21 +173,24 @@ export default {
         .on("dragEnd", (e) => this.handleDragEnd(e, index));
     },
     handleElementMouseleave(index) {
-        if (this.activeElementIndex === -1) return;
-        if (this.moveable) {
-          this.moveable.destroy();
-          this.moveable = null;
-        }
-        if (this.isSnapEnabled) {
-          this.elements[index].left = this.activeLeftGuide;
-          this.elements[index].width =
-            this.activeRightGuide - this.activeLeftGuide;
-        }
-        this.isResizingLeft = false;
-        this.isResizingRight = false;
-        this.activeElementIndex = -1;
+      if (this.activeElementIndex === -1) return;
+
+      if (this.moveable) {
+        this.moveable.destroy();
+        this.moveable = null;
+      }
+      if (this.isSnapEnabled) {
+        this.elements[index].left = this.activeLeftGuide;
+        this.elements[index].width =
+          this.activeRightGuide - this.activeLeftGuide;
+      }
+      this.isResizingLeft = false;
+      this.isResizingRight = false;
+      this.activeElementIndex = -1;
     },
     handleElementMouseenter(elementRef, index) {
+      if (index === this.activeElementIndex) return;
+
       if (this.moveable) {
         this.moveable.destroy();
         this.moveable = null;
@@ -189,27 +199,12 @@ export default {
     },
   },
   computed: {
-    sectionStyle: ({
-      width,
-      height,
-      componentWidth,
-      componentLeft,
-      componentTop,
-      rowGap,
-      columnGap,
-      columnCount,
-    //   activeElementIndex,
-    //   moveable,
-    }) => ({
+    sectionStyle: ({ width, height, rowGap, columnGap, columnCount }) => ({
       "--section-width": `${width}px`,
       "--section-height": `${height}px`,
       "--section-rowGap": `${rowGap}px`,
       "--section-columnGap": `${columnGap}px`,
       "--section-columnCount": columnCount,
-      "--element-width": `${componentWidth}px`,
-      "--element-left": `${componentLeft}px`,
-      "--element-top": `${componentTop}px`,
-    //   pointerEvents: moveable && 'none',
     }),
     columnWidth: ({ width, columnCount, columnGap }) => {
       return (width + columnGap) / columnCount - columnGap;
@@ -224,18 +219,18 @@ export default {
     },
     activeLeftGuide: ({ leftGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
-      return leftGuides.reduce((prev, curr) => {
-        const { left } = elements[activeElementIndex];
-        return Math.abs(curr - left) < Math.abs(prev - left) ? curr : prev;
-      });
+
+      const { left } = elements[activeElementIndex];
+
+      return getClosest(leftGuides, left);
     },
     activeRightGuide: ({ rightGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
+
       const { left, width } = elements[activeElementIndex];
       const right = left + width;
-      return rightGuides.reduce((prev, curr) => {
-        return Math.abs(curr - right) < Math.abs(prev - right) ? curr : prev;
-      });
+
+      return getClosest(rightGuides, right);
     },
     showLeftGuide: ({ isResizingLeft, isSnapEnabled }) => {
       return isResizingLeft && isSnapEnabled;
@@ -272,7 +267,7 @@ body {
 }
 
 .moveable-control-box {
-    pointer-events: all;
+  pointer-events: all;
 }
 
 .section {
@@ -282,10 +277,7 @@ body {
 }
 
 .moveable {
-  position: absolute;
-  width: var(--element-width);
-  left: var(--element-left);
-  top: var(--element-top);
+  /* position: absolute; */
 }
 
 .moveable .image {
@@ -320,18 +312,18 @@ body {
 }
 
 .moveable-control:not(.moveable-line):not(.s) {
-    width: 8px;
-    height: 8px;
-    border-radius: 0;
-    box-sizing: border-box;
-    margin-top: -4px;
-    margin-left: -4px;
-    border: 2px solid #357df9;
-    background-color: #ffff;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  box-sizing: border-box;
+  margin-top: -4px;
+  margin-left: -4px;
+  border: 2px solid #357df9;
+  background-color: #ffff;
 }
 .moveable-line:not(.moveable-control):not(.s) {
-    width: 2px;
-    height: 2px;
-    background-color: #357df9;
+  width: 2px;
+  height: 2px;
+  background-color: #357df9;
 }
 </style>
