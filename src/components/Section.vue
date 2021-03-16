@@ -95,10 +95,10 @@ export default {
       this.isResizingRight = true;
     },
     handleDrag(e, index) {
-      this.elements[index].top = e.top;
-      this.elements[index].left = e.left;
       e.target.style.top = `${e.top}px`;
       e.target.style.left = `${e.left}px`;
+      this.elements[index].top = e.top;
+      this.elements[index].left = e.left;
     },
     handleDragEnd(e, index) {
       if (this.isSnapEnabled) {
@@ -136,8 +136,8 @@ export default {
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.elements[index].left}px`;
-        e.target.style.width = `${this.elements[index].width}px`;
+        e.target.style.left = `${this.activeLeftGuide}px`;
+        e.target.style.width = `${this.activeRightGuide - this.activeLeftGuideh}px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
@@ -314,8 +314,24 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1px;
-  background-color: #4af;
+  width: 2px;
+  background-color: #357df9;
   /* opacity: 0; */
+}
+
+.moveable-control:not(.moveable-line):not(.s) {
+    width: 8px;
+    height: 8px;
+    border-radius: 0;
+    box-sizing: border-box;
+    margin-top: -4px;
+    margin-left: -4px;
+    border: 2px solid #357df9;
+    background-color: #ffff;
+}
+.moveable-line:not(.moveable-control):not(.s) {
+    width: 2px;
+    height: 2px;
+    background-color: #357df9;
 }
 </style>
