@@ -1,9 +1,10 @@
 <template>
-  <div class="tiles" :class="{ 'is-active': showTiles }">
-    <div class="tiles__row" v-for="row in rowCount" :key="`row${row}`">
+  <!-- <div class="tiles" :class="{ 'is-active': showTiles }"> -->
+  <div class="tiles" :class="{ 'is-active': true }">
+    <div class="tiles__row" v-for="row in Number(rowCount)" :key="`row${row}`">
       <div
         class="tiles__column"
-        v-for="column in columnCount"
+        v-for="column in Number(columnCount)"
         :key="`column${column}`"
       />
     </div>

@@ -1,29 +1,85 @@
 <template>
-  <section class="section" ref="section" :style="sectionStyle">
-    <Element
-      v-for="({ width, top, left, id, content, shouldSnap }, index) in elements"
-      :width="width"
-      :left="left"
-      :top="top"
-      :key="id"
-      :shouldSnap="shouldSnap"
-      :content="content"
-      @element-click="() => handleElementClick(index)"
-      @element-lock-click="() => handleElementLockClick(index)"
-      @element-mouseleave="() => handleElementMouseleave(index)"
-      @element-mouseenter="(payload) => handleElementMouseenter(payload, index)"
-    />
-    <Tiles
-      :row-count="rowCount"
-      :column-count="columnCount"
-      :show-tiles="showLeftGuide || showRightGuide"
-      :show-left-guide="showLeftGuide"
-      :show-right-guide="showRightGuide"
-      :active-left-guide="activeLeftGuide"
-      :active-right-guide="activeRightGuide"
-      :active-top-guide="activeTopGuide"
-    />
-  </section>
+  <main>
+    <div class="controls">
+      <div class="controls__field">
+        <label for="width" class="controls__label">
+          Grid width (step = column count)
+        </label>
+        <input
+          v-model.number="width"
+          type="range"
+          min="1000"
+          max="1600"
+          :step="columnCount"
+          name="width"
+          id="width"
+          class="controls__range"
+        />
+      </div>
+      <div class="controls__field">
+        <label for="columnCount" class="controls__label"> Column count </label>
+        <input
+          type="range"
+          v-model.number="columnCount"
+          min="4"
+          max="16"
+          name="columnCount"
+          id="columnCount"
+          class="controls__range"
+        />
+      </div>
+      <div class="controls__field">
+        <label for="columnGap" class="controls__label"> Column gap </label>
+        <input
+          type="range"
+          v-model.number="columnGap"
+          name="columnGap"
+          id="columnGap"
+          class="controls__range"
+        />
+      </div>
+      <div class="controls__field">
+        <label for="rowGap" class="controls__label"> Row gap </label>
+        <input
+          type="range"
+          v-model.number="rowGap"
+          name="rowGap"
+          id="rowGap"
+          class="controls__range"
+        />
+      </div>
+    </div>
+    <section class="section" ref="section" :style="sectionStyle">
+      <Element
+        v-for="(
+          { width, top, left, id, content, shouldSnap }, index
+        ) in elements"
+        :width="width"
+        :left="left"
+        :top="top"
+        :key="id"
+        :shouldSnap="shouldSnap"
+        :content="content"
+        @element-click="() => handleElementClick(index)"
+        @element-lock-click="() => handleElementLockClick(index)"
+        @element-mouseleave="() => handleElementMouseleave(index)"
+        @element-mouseenter="
+          (payload) => handleElementMouseenter(payload, index)
+        "
+        @mousedown="(event) => handleMousedowno(event, index)"
+      />
+      <Tiles
+        :row-count="rowCount"
+        :column-count="columnCount"
+        :show-tiles="showLeftGuide || showRightGuide"
+        :show-left-guide="showLeftGuide"
+        :show-right-guide="showRightGuide"
+        :active-left-guide="activeLeftGuide"
+        :active-right-guide="activeRightGuide"
+        :active-top-guide="activeTopGuide"
+      />
+    </section>
+  </main>
 </template>
 
 <script>
@@ -169,7 +225,7 @@ export default {
         draggable: true,
         // throttleDrag: 1,
         resizable: true,
-        // throttleResize: 1,
+        throttleResize: 1,
         edge: true,
         origin: false,
         renderDirections: ["e", "w"],
@@ -201,6 +257,7 @@ export default {
     },
     handleElementMouseenter(elementRef, index) {
       if (index === this.activeElementIndex) return;
+      console.log("reinit");
 
       if (this.moveable) {
         this.moveable.destroy();
@@ -211,8 +268,20 @@ export default {
     handleElementClick(index) {
       //   this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
     },
+    handleMousedown(e, index) {
+      console.log(e, index);
+    },
     handleElementLockClick(index) {
       this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
+    },
+    reSnap() {
+      this.elements.forEach((el, index) => {
+        if (!this.elements[index].shouldSnap) return;
+
+        this.elements[index].left = getClosest(this.leftTileGuides, el.left);
+        this.elements[index].width = getClosest(this.rightTileGuides, el.width);
+        this.elements[index].top = getClosest(this.topTileGuides, el.top);
+      });
     },
   },
   computed: {
@@ -273,6 +342,12 @@ export default {
     });
 
     resizeObserver.observe(this.$refs.section);
+  },
+  watch: {
+    width: "reSnap",
+    columnGap: "reSnap",
+    columnWidth: "reSnap",
+    rowGap: "reSnap",
   },
 };
 </script>
