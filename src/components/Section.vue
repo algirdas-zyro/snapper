@@ -20,7 +20,6 @@
         :key="element.id"
         :shouldSnap="element.shouldSnap"
         :content="element.content"
-        @element-click="() => handleElementClick(index)"
         @element-lock-click="() => handleElementLockClick(index)"
         @element-mouseleave="() => handleElementMouseleave(index)"
         @element-mouseenter="(e) => handleElementMouseenter(e, index)"
@@ -230,9 +229,6 @@ export default {
         this.moveable = null;
       }
       this.initializeMoveable(elementRef, index);
-    },
-    handleElementClick(index) {
-      //   this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
     },
     handleMousedown(e, index) {
       console.log(e, index);
