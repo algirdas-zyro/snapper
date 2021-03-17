@@ -10,7 +10,7 @@
       @column-gap-input="columnGap = Number($event.target.value)"
       @row-gap-input="rowGap = Number($event.target.value)"
     />
-    <section class="section" ref="section" :style="sectionStyle">
+    <section class="section" ref="sectionRef" :style="sectionStyle">
       <Element
         v-for="(element, index) in elements"
         :sectionWidth="width"
@@ -186,11 +186,11 @@ export default {
     initializeMoveable(elementRef, index) {
       this.moveable = new Moveable(document.body, {
         // If the container is null, the position is fixed. (default: parentElement(document.body))
-        container: this.sectionRef,
+        // container: this.$refs.sectionRef,
         target: elementRef,
-        // passDragArea: true,
+        passDragArea: true,
         draggable: true,
-        // throttleDrag: 1,
+        throttleDrag: 1,
         resizable: true,
         throttleResize: 1,
         edge: true,
@@ -314,7 +314,7 @@ export default {
       this.height = contentRect.height;
     });
 
-    resizeObserver.observe(this.$refs.section);
+    resizeObserver.observe(this.$refs.sectionRef);
   },
   watch: {
     width: "reSnap",

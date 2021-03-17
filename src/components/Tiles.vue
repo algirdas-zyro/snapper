@@ -1,6 +1,5 @@
 <template>
   <div class="tiles" :class="{ 'is-active': showTiles }">
-  <!-- <div class="tiles" :class="{ 'is-active': true }"> -->
     <div class="tiles__row" v-for="row in Number(rowCount)" :key="`row${row}`">
       <div
         class="tiles__column"
@@ -69,8 +68,7 @@ export default {
   bottom: 0;
   width: 1px;
   background-color: #4af;
-  opacity: 0.3;
-  transition: opacity 0.25s ease-out;
+  opacity: 0;
 }
 
 .tiles__guide--horizontal:not(.s) {

@@ -44,18 +44,9 @@ export default {
     lockIcon: ({ shouldSnap }) => (shouldSnap ? faLock : faLockOpen),
     elementStyle: ({ sectionWidth, width, left, top }) => {
       return {
-        // "--width": `${width}px`,
-        // "--left": `${left}px`,
-        // "--top": `${top}px`,
-        // width: `${width}px`,
-        // left: `${left}px`,
-        // top: `${top}px`,
         width: `${(width / sectionWidth) * 100}%`,
         left: `${(left / sectionWidth) * 100}%`,
         top: `${top}px`,
-        // '--width': `${(width / sectionWidth) * 100}%`,
-        // '--left': `${(left / sectionWidth) * 100}%`,
-        // '--top': `${top}px`,
       };
     },
   },
