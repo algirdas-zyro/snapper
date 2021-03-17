@@ -51,21 +51,18 @@
     </div>
     <section class="section" ref="section" :style="sectionStyle">
       <Element
-        v-for="(
-          { width, top, left, id, content, shouldSnap }, index
-        ) in elements"
-        :width="width"
-        :left="left"
-        :top="top"
-        :key="id"
-        :shouldSnap="shouldSnap"
-        :content="content"
+        v-for="(element, index) in elements"
+        :sectionWidth="width"
+        :width="element.width"
+        :left="element.left"
+        :top="element.top"
+        :key="element.id"
+        :shouldSnap="element.shouldSnap"
+        :content="element.content"
         @element-click="() => handleElementClick(index)"
         @element-lock-click="() => handleElementLockClick(index)"
         @element-mouseleave="() => handleElementMouseleave(index)"
-        @element-mouseenter="
-          (payload) => handleElementMouseenter(payload, index)
-        "
+        @element-mouseenter="(e) => handleElementMouseenter(e, index)"
         @mousedown="(event) => handleMousedowno(event, index)"
       />
       <Tiles
@@ -168,15 +165,18 @@ export default {
       this.elements[index].left = e.left;
     },
     handleDragEnd(e, index) {
-      //   if (this.isSnapEnabled) {
       if (this.elements[index].shouldSnap) {
+        // TODO: get rid of those imperative sets:((
+        e.target.style.left = `${this.activeLeftGuide}px`;
+        e.target.style.width = `${
+          this.activeRightGuide - this.activeLeftGuide
+        }px`;
+        e.target.style.top = `${this.activeTopGuide}px`;
+
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
         this.elements[index].top = this.activeTopGuide;
-        e.target.style.left = `${this.elements[index].left}px`;
-        e.target.style.width = `${this.elements[index].width}px`;
-        e.target.style.top = `${this.elements[index].top}px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
@@ -191,26 +191,25 @@ export default {
       this.isResizingRight = e.direction[0] === 1;
     },
     handleResize(e, index) {
-      this.elements[index].width = e.target.clientWidth;
       e.target.style.width = `${e.width}px`;
+      this.elements[index].width = e.target.clientWidth;
 
       // only on left handle
       if (this.isResizingLeft) {
+        e.target.style.left = this.elements[index].left;
         this.elements[index].left =
           this.elements[index].initialLeft - e.dist[0];
-        e.target.style.left = `${this.elements[index].left}px`;
       }
     },
     handleResizeEnd(e, index) {
-      //   if (this.isSnapEnabled) {
       if (this.elements[index].shouldSnap) {
+        // TODO: get rid of those imperative sets:((
+        e.target.style.left = `${this.activeLeftGuide}px`;
+        e.target.style.width = `${this.activeRightGuide - this.activeLeftGuide}px`;
+
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
           this.activeRightGuide - this.activeLeftGuide;
-        e.target.style.left = `${this.activeLeftGuide}px`;
-        e.target.style.width = `${
-          this.activeRightGuide - this.activeLeftGuideh
-        }px`;
       }
       this.isResizingLeft = false;
       this.isResizingRight = false;
@@ -257,7 +256,6 @@ export default {
     },
     handleElementMouseenter(elementRef, index) {
       if (index === this.activeElementIndex) return;
-      console.log("reinit");
 
       if (this.moveable) {
         this.moveable.destroy();
@@ -273,6 +271,9 @@ export default {
     },
     handleElementLockClick(index) {
       this.elements[index].shouldSnap = !this.elements[index].shouldSnap;
+    },
+    getPerc(size) {
+      return `${(size / this.width) * 100}%`;
     },
     reSnap() {
       this.elements.forEach((el, index) => {
@@ -311,7 +312,9 @@ export default {
     },
     activeLeftGuide: ({ leftTileGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
+
       const { left } = elements[activeElementIndex];
+
       return getClosest(leftTileGuides, left);
     },
     activeRightGuide: ({ rightTileGuides, elements, activeElementIndex }) => {
@@ -324,7 +327,9 @@ export default {
     },
     activeTopGuide: ({ topTileGuides, elements, activeElementIndex }) => {
       if (activeElementIndex === -1) return;
+
       const { top } = elements[activeElementIndex];
+
       return getClosest(topTileGuides, top);
     },
     showLeftGuide: ({ isResizingLeft, elements, activeElementIndex }) => {
@@ -426,5 +431,13 @@ body {
   width: 2px;
   height: 2px;
   background-color: #357df9;
+}
+.moveable-line:not(.moveable-control):before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
 }
 </style>

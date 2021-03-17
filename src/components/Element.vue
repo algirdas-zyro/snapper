@@ -34,6 +34,7 @@ export default {
     top: Number,
     left: Number,
     shouldSnap: Boolean,
+    sectionWidth: Number,
   },
   data() {
     return {};
@@ -41,11 +42,20 @@ export default {
   methods: {},
   computed: {
     lockIcon: ({ shouldSnap }) => (shouldSnap ? faLock : faLockOpen),
-    elementStyle: ({ width, left, top }) => {
+    elementStyle: ({ sectionWidth, width, left, top }) => {
       return {
-        width: `${width}px`,
-        left: `${left}px`,
+        // "--width": `${width}px`,
+        // "--left": `${left}px`,
+        // "--top": `${top}px`,
+        // width: `${width}px`,
+        // left: `${left}px`,
+        // top: `${top}px`,
+        width: `${(width / sectionWidth) * 100}%`,
+        left: `${(left / sectionWidth) * 100}%`,
         top: `${top}px`,
+        // '--width': `${(width / sectionWidth) * 100}%`,
+        // '--left': `${(left / sectionWidth) * 100}%`,
+        // '--top': `${top}px`,
       };
     },
   },
@@ -56,6 +66,11 @@ export default {
 <style>
 .element {
   position: absolute;
+/* 
+  width: var(--width);
+  height: var(--height);
+  top: var(--top);
+   */
 }
 
 .element__lock {
