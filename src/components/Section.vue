@@ -1,54 +1,15 @@
 <template>
   <main>
-    <div class="controls">
-      <div class="controls__field">
-        <label for="width" class="controls__label">
-          Grid width (step = column count)
-        </label>
-        <input
-          v-model.number="width"
-          type="range"
-          min="1000"
-          max="1600"
-          :step="columnCount"
-          name="width"
-          id="width"
-          class="controls__range"
-        />
-      </div>
-      <div class="controls__field">
-        <label for="columnCount" class="controls__label"> Column count </label>
-        <input
-          type="range"
-          v-model.number="columnCount"
-          min="4"
-          max="16"
-          name="columnCount"
-          id="columnCount"
-          class="controls__range"
-        />
-      </div>
-      <div class="controls__field">
-        <label for="columnGap" class="controls__label"> Column gap </label>
-        <input
-          type="range"
-          v-model.number="columnGap"
-          name="columnGap"
-          id="columnGap"
-          class="controls__range"
-        />
-      </div>
-      <div class="controls__field">
-        <label for="rowGap" class="controls__label"> Row gap </label>
-        <input
-          type="range"
-          v-model.number="rowGap"
-          name="rowGap"
-          id="rowGap"
-          class="controls__range"
-        />
-      </div>
-    </div>
+    <Controls
+      :width="width"
+      :column-count="columnCount"
+      :column-gap="columnGap"
+      :row-gap="rowGap"
+      @width-input="width = Number($event.target.value)"
+      @column-count-input="columnCount = Number($event.target.value)"
+      @column-gap-input="columnGap = Number($event.target.value)"
+      @row-gap-input="rowGap = Number($event.target.value)"
+    />
     <section class="section" ref="section" :style="sectionStyle">
       <Element
         v-for="(element, index) in elements"
@@ -84,6 +45,7 @@ import Moveable from "moveable";
 
 import Tiles from "./Tiles.vue";
 import Element from "./Element.vue";
+import Controls from "./Controls.vue";
 
 const INITIAL_SECTION_WIDTH = 1224;
 const INITIAL_SECTION_HEIGHT = 248;
@@ -128,6 +90,7 @@ const getClosest = (array, val) =>
 export default {
   name: "Section",
   components: {
+    Controls,
     Element,
     Tiles,
   },
@@ -153,6 +116,9 @@ export default {
     };
   },
   methods: {
+    handleSetWidth(e) {
+      console.log({ e });
+    },
     handleDragStart(e, index) {
       this.activeElementIndex = index;
       this.isResizingLeft = true;
@@ -205,7 +171,9 @@ export default {
       if (this.elements[index].shouldSnap) {
         // TODO: get rid of those imperative sets:((
         e.target.style.left = `${this.activeLeftGuide}px`;
-        e.target.style.width = `${this.activeRightGuide - this.activeLeftGuide}px`;
+        e.target.style.width = `${
+          this.activeRightGuide - this.activeLeftGuide
+        }px`;
 
         this.elements[index].left = this.activeLeftGuide;
         this.elements[index].width =
